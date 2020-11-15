@@ -12,65 +12,7 @@
 		"url": "https://www.naver.com",
 		"xpath": "xpath",
 		"module": "HTML",
-		"rawdata": [
-			{
-				"submodule": 3,
-				"malJquery_Detection": "(<script src=\"https://ajax.googleapis.com/ajaxw/libs/jquery/2.1.0/jquery.min.js\" integrity=\"sha256-JD9u5RNjfbbYl/AbiYYvVPKcLNlKNe2urUMuGzNEIck=\" crossorigin=\"anonymous\">)"
-			},
-			{
-				"submodule": 2,
-				"malURL_Type": "피싱",
-				"malURL_Detection": "(<a href = 'http://naverpay.cafe-592.com/?pd=5464565'>)"
-			},
-			{
-				"submodule": 4,
-				"original_code": "(<iframe src=\"https://news.naver.com\"style=\"width:90%\" height=\"500\" scrolling=\"auto\">)",
-				"modified_code": "(<iframe src=\"https://wfwf19.com/news/new\" style=\"width:90%\" height=\"500\" scrolling=\"auto\">)"
-			},
-			{
-				"submodule": 1,
-				"original_code": "(<p>안뇽!)",
-				"modified_code": "(<p>메롱!)"
-			},
-			{
-				"submodule": 1,
-				"original_code": "(</p> \")",
-				"modified_code": "(</p> )"
-			},
-			{
-				"submodule": 1,
-				"original_code": "()",
-				"modified_code": "(<a href> 어랜ㅇ러나ㅣ얼 )"
-			},
-			{
-				"submodule": 1,
-				"original_code": "()",
-				"modified_code": "(</a> \")"
-			},
-			{
-				"submodule": 1,
-				"original_code": "(<img src=\"/assets/img/m_menu3.jpg\">)",
-				"modified_code": "(<img src=\"/assets/img/m_menu3.png\">)"
-			},
-			{
-				"submodule": 1,
-				"original_code": "(<span class=\"ico_vert inner_shortcut\">주요 서비스 바로가기)",
-				"modified_code": "()"
-			},
-			{
-				"submodule": 1,
-				"original_code": "(</span>)",
-				"modified_code": "()"
-			}
-		]
-	},
-	{
-		"timestamp": "time",
-		"Detection": true,
-		"url": "https://www.naver.com",
-		"xpath": "xpath",
-		"module": "HTML",
-		"rawdata": [
+		"logdata": [
 			{
 				"submodule": 3,
 				"malJquery_Detection": "(<script src=\"https://ajax.googleapis.com/ajaxw/libs/jquery/2.1.0/jquery.min.js\" integrity=\"sha256-JD9u5RNjfbbYl/AbiYYvVPKcLNlKNe2urUMuGzNEIck=\" crossorigin=\"anonymous\">)"
