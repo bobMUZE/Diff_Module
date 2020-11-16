@@ -298,10 +298,13 @@ class HtmlDiff(object):
                         original_url_link = temp_list0[0].strip(">").strip('"').strip("'")
                         temp_list1 = temp_list1[1].strip().split(' ')
                         modify_url_link = temp_list1[0].strip(">").strip('"').strip("'")
+
                         internal_domain = self.filename.replace('//', '').replace('http:', '').replace('https:', '').replace('www.', '').split('/')[0]
-                        if internal_domain in original_url_link and internal_domain in modify_url_link:
+                        if (original_url_link[0]=='/'or original_url_link[0]=='#') and (modify_url_link[0]=='/'or modify_url_link[0]=='#'):
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
-                        elif internal_domain in original_url_link:
+                        elif internal_domain in original_url_link and internal_domain in modify_url_link:
+                            diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
+                        elif internal_domain in original_url_link or original_url_link[0]=='/'or original_url_link[0]=='#':
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
@@ -326,41 +329,37 @@ class HtmlDiff(object):
     def format(self):
         self.diffs = self.get_Diff(self.text1, self.text2)
 
-        raw_data = OrderedDict()
-        html_idx = 1
-        jquery_idx = 1
-        iframe_idx = 1
-        url_idx = 1
+        raw_data = []
 
         for diff in self.diffs:
             if diff[2] == False:
                 continue
             elif diff[2] == True:
                 rawraw_data = OrderedDict()
+                rawraw_data['submodule'] = 1
                 rawraw_data['original_code'] = "("+diff[0]+")"
                 rawraw_data['modified_code'] = "("+diff[1]+")"
-                raw_data['소스위변조'+str(html_idx)] = rawraw_data
-                html_idx +=1
+                raw_data.append(rawraw_data)
 
             elif diff[2] == '위험Jquery사용':
                 rawraw_data = OrderedDict()
-                rawraw_data['malJquery_Use'] = "(" + diff[1] + ")"
-                raw_data['위험Jquery탐지' + str(jquery_idx)] = rawraw_data
-                jquery_idx += 1
+                rawraw_data['submodule'] = 3
+                rawraw_data['malJquery_Detection'] = "(" + diff[1] + ")"
+                raw_data.append(rawraw_data)
 
             elif diff[2] == 'Iframe 도메인변조':
                 rawraw_data = OrderedDict()
+                rawraw_data['submodule'] = 4
                 rawraw_data['original_code'] = "(" + diff[0] + ")"
                 rawraw_data['modified_code'] = "(" + diff[1] + ")"
-                raw_data['Iframe 도메인변조' + str(iframe_idx)] = rawraw_data
-                iframe_idx += 1
+                raw_data.append(rawraw_data)
 
             elif '외부링크타입:' in str(diff[2]):
                 rawraw_data = OrderedDict()
+                rawraw_data['submodule'] = 2
                 rawraw_data['malURL_Type'] =  diff[2].split(":")[1]
                 rawraw_data['malURL_Detection'] = "(" + diff[1] + ")"
-                raw_data['위험URL탐지' + str(url_idx)] = rawraw_data
-                url_idx += 1
+                raw_data.append(rawraw_data)
 
         return raw_data
 
@@ -542,7 +541,7 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
     log_data['Detection'] = False
     log_data['url'] = page_url
     log_data['xpath'] = xpath
-    log_data['module'] = 'HTML 위변조탐지'
+    log_data['module'] = 'HTML'
     f.close()
 
     if text1.replace("\n", "").replace(" ", "") == text2.replace("\n", "").replace(" ", ""):
@@ -553,11 +552,15 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
     else:
         f = open(LOG_PATH, "w", encoding="utf8")
         htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath= xpath)
-        log_data['rawdata']=htmlDiff.format()
+        log_data['logdata']=htmlDiff.format()
         log_data['Detection'] = True
         dict_info.append(log_data)
         f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
         return False
 
+# rawdata1 = URL 안전성검사 결과
+# rawdata2 = 위험 Jquery 사용여부 결과
+# rawdata3 = Iframe 도메인 변경여부 결과
+# rawdata4 = HTML 소스코드 위변조 여부 결과
 
 diff_html('3.html', 'https://www.naver.com', 'time', 'xpath')
