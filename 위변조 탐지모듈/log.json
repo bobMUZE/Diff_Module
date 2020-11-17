@@ -1,0 +1,16 @@
+[
+	{
+		"Timestamp": "2020-11-17 23:07:48.587184",
+		"URL": "url sample",
+		"detection": true,
+		"module": "ML_PhishingDetected",
+		"log": [
+			{
+				"submodule": 0,
+				"external_url": "http://naverpay.cafe-592.com/?pd=5464565",
+				"result": "1",
+				"percentage": "100%"
+			}
+		]
+	}
+]
