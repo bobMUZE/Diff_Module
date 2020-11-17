@@ -14,7 +14,7 @@ import json
 from collections import OrderedDict
 
 
-
+# 자바 스크립트 - 전체 text 크롤링
 class JSDiff(object):
 
     def __init__(self, text1, text2, name=None):
@@ -307,10 +307,16 @@ class HtmlDiff(object):
                         elif internal_domain in original_url_link or original_url_link[0]=='/'or original_url_link[0]=='#':
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
+
+                            # modify_url_link 하늘이 오빠 큐에 넣어주세요
+
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
                         else:
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
+
+                            # modify_url_link 하늘이 오빠 큐에 넣어주세요
+
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
                             else:
@@ -558,9 +564,11 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
         f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
         return False
 
-# rawdata1 = URL 안전성검사 결과
-# rawdata2 = 위험 Jquery 사용여부 결과
-# rawdata3 = Iframe 도메인 변경여부 결과
-# rawdata4 = HTML 소스코드 위변조 여부 결과
+# submodule=1 : HTML 소스코드 위변조탐지
+# submodule=2 : URL 안전성검사
+# submodule=3 : 위험 Jquery 사용탐지
+# submodule=4 : Iframe 도메인 변경탐지
+
+
 
 diff_html('3.html', 'https://www.naver.com', 'time', 'xpath')
