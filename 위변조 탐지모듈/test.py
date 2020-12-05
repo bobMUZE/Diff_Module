@@ -313,7 +313,7 @@ class HtmlDiff(object):
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
 
-                            # modify_url_link 하늘이 오빠 큐에 넣어주세요
+                            # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
 
@@ -322,7 +322,7 @@ class HtmlDiff(object):
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
 
-                            # modify_url_link 하늘이 오빠 큐에 넣어주세요
+                            # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
