@@ -32,16 +32,12 @@ class JSDiff(object):
                 textlist[i] = textlist[i].replace('//', '\n//') + '$$$$$$'
             text2 = text2 + textlist[i]
 
-        self.text1 = text1.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace(
-            '$$$$$$', '\n').strip()
-        self.text2 = text2.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace(
-            '$$$$$$', '\n').strip()
+        self.text1 = text1.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace('$$$$$$', '\n').strip()
+        self.text2 = text2.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace('$$$$$$', '\n').strip()
         self.fromlines = re.split("\n", self.text1)
         self.fromlines = [n + "\n" for n in self.fromlines]
-        self.leftcode = self.text1
         self.tolines = re.split("\n", self.text2)
         self.tolines = [n + "\n" for n in self.tolines]
-        self.rightcode = self.text2
 
     def getDiffDetails(self, fromdesc='', todesc='', context=False, numlines=5, tabSize=8):
 
@@ -76,7 +72,6 @@ class JSDiff(object):
         for diff in self.diffs:
             if diff[2] == True:
                 print("%-6s %-80s %-80s" % (diff[2], diff[0], diff[1]))
-
 
 
 class FileDiff(object):
@@ -201,6 +196,8 @@ class FileDiff(object):
 
 
 
+
+
 class HtmlDiff(object):
 
     def __init__(self, text1, text2, name=None, timestamp=None, xpath=None):
@@ -208,10 +205,8 @@ class HtmlDiff(object):
         self.text2 = text2.replace("\n", "").replace("<", "\n<").strip()
         self.fromlines = re.split("\n", self.text1)
         self.fromlines = [n + "\n" for n in self.fromlines]
-        self.leftcode = self.text1
         self.tolines = re.split("\n", self.text2)
         self.tolines = [n + "\n" for n in self.tolines]
-        self.rightcode = self.text2
         self.filename = name
         self.timestamp = timestamp
         self.xpath = xpath
@@ -246,10 +241,10 @@ class HtmlDiff(object):
             if '<iframe' in text_origin and '<iframe' in text_modify:
                 ifram_temp_bool = True
 
-            if '<script src' in text_origin and 'jquery' in text_modify and '<script src' in text_modify:
+            elif '<script src' in text_origin and 'jquery' in text_modify and '<script src' in text_modify:
                 jquery_temp_bool = True
 
-            if 'href' in text_origin and 'href' in text_modify:
+            elif 'href' in text_origin and 'href' in text_modify:
                 url_temp_bool = True
 
             if diffs_list[i][2] == True:
@@ -261,27 +256,30 @@ class HtmlDiff(object):
                     temp_list1 = text_modify.replace('src =', 'src=').split('src=')
                     if len(temp_list0) > 1 and len(temp_list1) > 1:
                         temp_list0 = temp_list0[1].strip().split(' ')
-                        original_iframe_link = temp_list0[0].strip('"').strip("'")
+                        original_iframe_link = temp_list0[0].strip(">").strip('"').strip("'")
                         temp_list1 = temp_list1[1].strip().split(' ')
-                        modify_iframe_link = temp_list1[0].strip('"').strip("'")
-                        temp0 = original_iframe_link.replace('http://', '').replace('https://', '').replace('//', '')
-                        temp1 = modify_iframe_link.replace('http://', '').replace('https://', '').replace('//', '')
+                        modify_iframe_link = temp_list1[0].strip(">").strip('"').strip("'")
+                        temp0 = original_iframe_link.replace('http://', '').replace('https://', '')
+                        temp1 = modify_iframe_link.replace('http://', '').replace('https://', '')
                         if temp0[0]=='/' or temp0[0]=='#':
                             original_domain = self.filename
                         else:
                             temp_list0 = temp0.split('/')
-                            original_domain = temp_list0[0]
+                            original_domain = temp_list0[0].replace('www.', '')
                         if temp1[0]=='/' or temp1[0]=='#':
                             modify_domain = self.filename
                         else:
                             temp_list1 = temp1.split('/')
-                            modify_domain = temp_list1[0]
-                        if original_domain == modify_domain or self.filename.replace('//', '').replace('http:', '').replace('https:', '').replace('www.', '').split('/')[0] in modify_domain:
+                            modify_domain = temp_list1[0].replace('www.', '')
+
+                        temp_url = self.filename.replace('http://','').replace('https://','').split('/')[0]
+
+                        if original_domain == modify_domain or temp_url.split('.')[-2]+"."+temp_url.split('.')[-1] in modify_domain:
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
                         else:
                             diffs_list[i] = (text_origin, text_modify, 'Iframe 도메인변조')
                             # iframe의 src domain이 같으면 참이라고 생각한다.
-                            # iframe에 page domain 이 있으면 참이라고 생각한다.
+                            # modified iframe에 page domain 이 포함되면 참이라고 생각한다.
 
                 if jquery_temp_bool == True:
                     jq = JqueryDiff()
@@ -291,19 +289,26 @@ class HtmlDiff(object):
                         diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '위험Jquery사용')
 
                 if url_temp_bool == True:
+
                     temp_list0 = text_origin.replace('href =', 'href=').split('href=')
                     temp_list1 = text_modify.replace('href =', 'href=').split('href=')
+
                     try:
                         temp_list0 = temp_list0[1].strip().split(' ')
                         original_url_link = temp_list0[0].strip(">").strip('"').strip("'")
                         temp_list1 = temp_list1[1].strip().split(' ')
                         modify_url_link = temp_list1[0].strip(">").strip('"').strip("'")
 
-                        internal_domain = self.filename.replace('//', '').replace('http:', '').replace('https:', '').replace('www.', '').split('/')[0]
+                        temp_url = self.filename.replace('http://', '').replace('https://', '').split('/')[0]
+                        internal_domain = temp_url.split('.')[-2]+"."+temp_url.split('.')[-1]
+
+                        # 내부링크 -> 내부링크 변조
                         if (original_url_link[0]=='/'or original_url_link[0]=='#') and (modify_url_link[0]=='/'or modify_url_link[0]=='#'):
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
                         elif internal_domain in original_url_link and internal_domain in modify_url_link:
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
+
+                        # 내부링크 -> 외부링크
                         elif internal_domain in original_url_link or original_url_link[0]=='/'or original_url_link[0]=='#':
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
@@ -311,6 +316,8 @@ class HtmlDiff(object):
                             # modify_url_link 하늘이 오빠 큐에 넣어주세요
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
+
+                        # 외부링크 -> 외부링크
                         else:
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
@@ -343,28 +350,28 @@ class HtmlDiff(object):
             elif diff[2] == True:
                 rawraw_data = OrderedDict()
                 rawraw_data['submodule'] = 1
-                rawraw_data['original_code'] = "("+diff[0]+")"
-                rawraw_data['modified_code'] = "("+diff[1]+")"
+                rawraw_data['original_code'] = diff[0]
+                rawraw_data['modified_code'] = diff[1]
                 raw_data.append(rawraw_data)
 
             elif diff[2] == '위험Jquery사용':
                 rawraw_data = OrderedDict()
                 rawraw_data['submodule'] = 3
-                rawraw_data['malJquery_Detection'] = "(" + diff[1] + ")"
+                rawraw_data['malJquery_Detection'] = diff[1]
                 raw_data.append(rawraw_data)
 
             elif diff[2] == 'Iframe 도메인변조':
                 rawraw_data = OrderedDict()
                 rawraw_data['submodule'] = 4
-                rawraw_data['original_code'] = "(" + diff[0] + ")"
-                rawraw_data['modified_code'] = "(" + diff[1] + ")"
+                rawraw_data['original_code'] = diff[0]
+                rawraw_data['modified_code'] = diff[1]
                 raw_data.append(rawraw_data)
 
             elif '외부링크타입:' in str(diff[2]):
                 rawraw_data = OrderedDict()
                 rawraw_data['submodule'] = 2
                 rawraw_data['malURL_Type'] =  diff[2].split(":")[1]
-                rawraw_data['malURL_Detection'] = "(" + diff[1] + ")"
+                rawraw_data['malURL_Detection'] = diff[1]
                 raw_data.append(rawraw_data)
 
         return raw_data
@@ -372,6 +379,7 @@ class HtmlDiff(object):
 
 
 class JqueryDiff(object):
+
 
     def __init__(self):
         self.jquery_DB_path = 'jquery_DB.csv'
@@ -425,8 +433,8 @@ class Mal_URL(object):
         pattern2 = ('m', 'a', 'exe', 'sh', 'zip', 'rar', 'x86', 'arm', 'mpsl', 'mips', 'ppc', 'm68k', 'z')
         url = re.sub('[-+,#\?:^$@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', my_url).rstrip('/')
         temp_list = url.split('/')
-        last = temp_list[len(temp_list) - 1]
-        pre_last = temp_list[len(temp_list) - 2]
+        last = temp_list[-1]
+        pre_last = temp_list[-2]
         if last.endswith(pattern) or last in pattern2 or pre_last in pattern2:
             return 1
         # 바이러스 토탈 API 검사
@@ -442,10 +450,10 @@ class Mal_URL(object):
                     try:
                         if json['positives'] == 0:
                             return 0
+                        else:  # 안전하면 0, 악성이면 1 , 홈페이지 이상이면 -1
+                            return 1
                     except:
-                        return self.malware_check(my_url, a_key)
-                    else:  # 안전하면 0, 악성이면 1 , 홈페이지 이상이면 -1
-                        return 1
+                        return -1
                 else:
                     return -1
             else:
@@ -457,14 +465,18 @@ class Mal_URL(object):
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
         try:
             sourcecode = requests.get(my_url, headers=HEADERS).text
-            count = (sourcecode.count('.gif\"') + sourcecode.count('gif?') - sourcecode.count('.gif?')) ** 5 \
-                    + sourcecode.count('보지') * 5 + sourcecode.count('자지') * 5 + sourcecode.count('야동') * 5 \
-                    + sourcecode.count('야사') * 3 + sourcecode.count('포르노') * 3 + sourcecode.count('노모') * 3 \
-                    + sourcecode.count('여캠') * 3 + sourcecode.count('토토') * 5 + sourcecode.count('토렌트') * 10 \
-                    + sourcecode.count('먹튀') * 10 + sourcecode.count('업소후기') * 50 + sourcecode.count(
-                '지역별 업소') * 50 + sourcecode.count('업소커뮤니티') * 50
-            # 해외 사이트....?? 이미 정부에서 해외 유해사이트 차단기능 제공..
-            if count >= 50:
+            count = (sourcecode.count('.gif\"') + sourcecode.count('gif?') - sourcecode.count('.gif?')) ** 2 \
+                    + sourcecode.count('보지') * 500 + sourcecode.count('자지') * 500 + sourcecode.count('야동') * 20 \
+                    + sourcecode.count('야사') * 30 + sourcecode.count('포르노') * 20 + sourcecode.count('노모') * 500 \
+                    + sourcecode.count('여캠') * 30 + sourcecode.count('토토') * 100 + sourcecode.count('토렌트') * 500 \
+                    + sourcecode.count('먹튀') * 500 + sourcecode.count('업소후기') * 500 + sourcecode.count(
+                '지역별 업소') * 500 + sourcecode.count('업소커뮤니티') * 500
+
+            # 정부에서 알아서 차단되는 사이트 분류하기
+            # 작은 뉴스회사와의 차이점 연구하기
+            # 변조가 아닌  게시판 글에서의 링크유해성 판단하기
+
+            if count >= 200:
                 return 1  # 유해컨텐츠이면 1
 
             # 피싱 사이트 탐지
@@ -510,15 +522,15 @@ class Mal_URL(object):
     def main(self, url):
         api_key = ["a2c4c89637e57dc27bdb3048989da16c530c2dfffc4783c62fa95ea936e19d80"]
         if self.malware_check(url, api_key) == 1:
-            return '악성'
+            return 'Mal'
         else:
             x = self.BadContents_Pishing_check(url)
             if x == 1:
-                return '유해'
+                return 'Bad'
             elif x == 2:
-                return '피싱'
+                return 'Phishing'
             else:
-                return '정상'
+                return 'Normal'
 
 
 
@@ -571,4 +583,4 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
 
 
 
-diff_html('3.html', 'https://www.naver.com', 'time', 'xpath')
+diff_html('3.html', 'http://3.131.17.188/wordpress', '2020-11-17 23:20:17.812169', 'xpath')
