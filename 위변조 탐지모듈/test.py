@@ -314,6 +314,14 @@ class HtmlDiff(object):
                             result = mal_url.main(modify_url_link)
 
                             # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
+                            a = Queue()
+                            a.put(modify_url_link)
+                            v = a.get()
+                            if v is None:
+                                print("None of data")
+                            else:
+                                Prepro = Preprocessing(v).MakingData()
+                                Machine = ML(Prepro, self.timestamp, self.filename, self.xpath).PredictionData()
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
 
@@ -323,6 +331,14 @@ class HtmlDiff(object):
                             result = mal_url.main(modify_url_link)
 
                             # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
+                            a = Queue()
+                            a.put(modify_url_link)
+                            v = a.get()
+                            if v is None:
+                                print("None of data")
+                            else:
+                                Prepro = Preprocessing(v).MakingData()
+                                Machine = ML(Prepro, self.timestamp, self.filename, self.xpath).PredictionData()
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)

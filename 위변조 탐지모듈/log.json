@@ -1,0 +1,17 @@
+[
+	{
+		"Timestamp": "2020-11-17 23:20:17.812169",
+		"detection": true,
+		"URL": "http://3.131.17.188/wordpress",
+		"xpath": "xpath",
+		"module": "ML_PhishingDetected",
+		"log": [
+			{
+				"submodule": 0,
+				"external_url": "http://naverpay.cafe-592.com/?pd=5464565",
+				"result": "0",
+				"percentage": "51%"
+			}
+		]
+	}
+]
