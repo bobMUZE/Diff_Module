@@ -200,7 +200,7 @@ class FileDiff(object):
 
 class HtmlDiff(object):
 
-    def __init__(self, text1, text2, name=None, timestamp=None, xpath=None):
+    def __init__(self, text1, text2, name=None, timestamp=None, xpath=None, response = None):
         self.text1 = text1.replace("\n", "").replace("<", "\n<").strip()
         self.text2 = text2.replace("\n", "").replace("<", "\n<").strip()
         self.fromlines = re.split("\n", self.text1)
@@ -210,6 +210,7 @@ class HtmlDiff(object):
         self.filename = name
         self.timestamp = timestamp
         self.xpath = xpath
+        self.response = response
 
     def get_Diff(self, fromdesc='', todesc='', context=False, numlines=5, tabSize=8):
 
@@ -313,15 +314,7 @@ class HtmlDiff(object):
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
 
-                            # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
-                            a = Queue()
-                            a.put(modify_url_link)
-                            v = a.get()
-                            if v is None:
-                                print("None of data")
-                            else:
-                                Prepro = Preprocessing(v).MakingData()
-                                Machine = ML(Prepro, self.timestamp, self.filename, self.xpath).PredictionData()
+                            #### self.response 하늘이 오빠 큐에 넣어주세요
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
 
@@ -330,15 +323,7 @@ class HtmlDiff(object):
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
 
-                            # modify_url_link ,  self.filename (=url) ,  self.timestamp , self.xpath 하늘이 오빠 큐에 넣어주세요
-                            a = Queue()
-                            a.put(modify_url_link)
-                            v = a.get()
-                            if v is None:
-                                print("None of data")
-                            else:
-                                Prepro = Preprocessing(v).MakingData()
-                                Machine = ML(Prepro, self.timestamp, self.filename, self.xpath).PredictionData()
+                            #### self.response 하늘이 오빠 큐에 넣어주세요
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
@@ -550,7 +535,7 @@ class Mal_URL(object):
 
 
 
-def diff_html(semiCrawling_path, page_url, time, xpath):
+def diff_html(semiCrawling_path, page_url, time, xpath, responseCode):
 
     # 파라미터
     # test1 = (원본값)
@@ -574,8 +559,10 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
     log_data['timestamp'] = time
     log_data['Detection'] = False
     log_data['url'] = page_url
+    log_data['response'] = responseCode
     log_data['xpath'] = xpath
     log_data['module'] = 'HTML'
+
     f.close()
 
     if text1.replace("\n", "").replace(" ", "") == text2.replace("\n", "").replace(" ", ""):
@@ -585,7 +572,7 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
         return True
     else:
         f = open(LOG_PATH, "w", encoding="utf8")
-        htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath= xpath)
+        htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath= xpath, response = responseCode)
         log_data['logdata']=htmlDiff.format()
         log_data['Detection'] = True
         dict_info.append(log_data)
@@ -599,4 +586,4 @@ def diff_html(semiCrawling_path, page_url, time, xpath):
 
 
 
-diff_html('3.html', 'http://3.131.17.188/wordpress', '2020-11-17 23:20:17.812169', 'xpath')
+diff_html('3.html', 'http://3.131.17.188/wordpress', '2020-11-17 23:20:17.812169', 'xpath', '200')
