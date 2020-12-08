@@ -332,7 +332,8 @@ class ML:
 
     def PredictionData(self):
         ex_web = [site for site in self.csv_data["url"]]
-
+        
+        
         predict_list = []
         for value in self.Predict_Proba():
             if value[0] > value[1]:
@@ -347,6 +348,7 @@ class ML:
         making_log_data["Timestamp"] = f"{self.time}"
         making_log_data["detection"] = True
         making_log_data["URL"] = f"{self.url_file}"
+        making_log_data["response"] = f"{requests.get(self.url_file).status_code}"
         making_log_data["xpath"] = f"{self.xpath}"
 
         making_log_data["module"] = "ML_PhishingDetected"
