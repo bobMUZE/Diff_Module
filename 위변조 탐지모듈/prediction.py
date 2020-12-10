@@ -309,11 +309,12 @@ class Preprocessing:
         return data
 
 class ML:
-    def __init__(self, csv_path, time, url_file, xpath, response):
+    def __init__(self, csv_path, time, url_file, xpath, response_status, request_time):
         self.time = time
         self.url_file = url_file
         self.xpath = xpath
-        self.response = response
+        self.response_status = response_status
+        self.request_time = request_time
         self.csv_data = pd.DataFrame(csv_path)
         self.x = self.csv_data[["entropy", "pathentropy", "hostname_length", "path_length", "tld_length",
                                 "count-", "count-@", "special_chacter", "count-http", "count-https", "count-www",
@@ -347,8 +348,8 @@ class ML:
         making_log_data["time"] = self.time
         making_log_data["detection"] = True
         making_log_data["url"] = f"{self.url_file}" # 연동완료
-        making_log_data["status_code"] = self.response # 연동완료
-        making_log_data["response_time"] = requests.get(self.url_file).elapsed.total_seconds() # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
+        making_log_data["status_code"] = self.response_status # 연동완료
+        making_log_data["response_time"] = self.request_time # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
         making_log_data["xpath"] = f"{self.xpath}" # 연동완료
 
         making_log_data["module"] = "ML_PhishingDetected"
@@ -362,6 +363,8 @@ class ML:
                        "percentage": f"{predict_list[i]}"
                        }
             making_log_data["logdata"].append(logdata)
+        import json
+        print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))
         testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
 
 
