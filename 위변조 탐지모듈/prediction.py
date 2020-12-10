@@ -349,7 +349,7 @@ class ML:
         making_log_data["detection"] = True
         making_log_data["url"] = f"{self.url_file}" # 연동완료
         making_log_data["status_code"] = self.response_status # 연동완료
-        making_log_data["response_time"] = self.request_time # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
+        making_log_data["response_time"] = self.request_time # 연동완료
         making_log_data["xpath"] = f"{self.xpath}" # 연동완료
 
         making_log_data["module"] = "ML_PhishingDetected"
