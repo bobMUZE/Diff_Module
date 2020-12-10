@@ -346,7 +346,7 @@ class ML:
         making_log_data = OrderedDict()
         making_log_data["time"] = self.time
         making_log_data["detection"] = True
-        making_log_data["URL"] = f"{self.url_file}"
+        making_log_data["url"] = f"{self.url_file}"
         making_log_data["status_code"] = self.response
         making_log_data["response_time"] = requests.get(self.url_file).elapsed.total_seconds() # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
         making_log_data["xpath"] = f"{self.xpath}"
