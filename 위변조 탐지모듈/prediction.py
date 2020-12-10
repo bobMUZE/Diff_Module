@@ -346,11 +346,11 @@ class ML:
                 predict_list.append("{}%".format(int(value[1] * 100)))
 
         making_log_data = OrderedDict()
-        making_log_data["Timestamp"] = f"{self.time}"
+        making_log_data["Timestamp"] = self.time
         making_log_data["detection"] = True
         making_log_data["URL"] = f"{self.url_file}"
-        making_log_data["status_code"] = url_state # 2020-12-10 추가 
-        making_log_data["response_time"] = f"{str(req_time)}" # 2020-12-10 추가
+        making_log_data["status_code"] = requests.get(self.url_file).status_code # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
+        making_log_data["response_time"] = requests.get(self.url_file).elapsed.total_seconds() # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
         making_log_data["xpath"] = f"{self.xpath}"
 
         making_log_data["module"] = "ML_PhishingDetected"
