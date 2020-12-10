@@ -1,11 +1,11 @@
 import math
 import whois
 import requests
-import datetime
 import ipaddress
+import pymongo
 import pandas as pd
 import urllib.request
-import re, os, json, joblib
+import re, joblib
 from tld import get_tld
 from googlesearch import search
 from urllib.request import urlopen
@@ -309,10 +309,11 @@ class Preprocessing:
         return data
 
 class ML:
-    def __init__(self, csv_path, time, url_file, xpath):
+    def __init__(self, csv_path, time, url_file, xpath, response):
         self.time = time
         self.url_file = url_file
         self.xpath = xpath
+        self.response = response
         self.csv_data = pd.DataFrame(csv_path)
         self.x = self.csv_data[["entropy", "pathentropy", "hostname_length", "path_length", "tld_length",
                                 "count-", "count-@", "special_chacter", "count-http", "count-https", "count-www",
@@ -333,11 +334,8 @@ class ML:
     def PredictionData(self):
         dbManager = MongoDbManager()
         testcol = dbManager.client['muzeDB']['logCollection']
-
         ex_web = [site for site in self.csv_data["url"]]
-        url_state = requests.get(self.url_file).status_code # 2020-12-10 추가
-        req_time = requests.get(self.url_file).elapsed # 2020-12-10 추가
-        
+
         predict_list = []
         for value in self.Predict_Proba():
             if value[0] > value[1]:
@@ -346,10 +344,10 @@ class ML:
                 predict_list.append("{}%".format(int(value[1] * 100)))
 
         making_log_data = OrderedDict()
-        making_log_data["Timestamp"] = self.time
+        making_log_data["time"] = self.time
         making_log_data["detection"] = True
         making_log_data["URL"] = f"{self.url_file}"
-        making_log_data["status_code"] = requests.get(self.url_file).status_code # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
+        making_log_data["status_code"] = self.response
         making_log_data["response_time"] = requests.get(self.url_file).elapsed.total_seconds() # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
         making_log_data["xpath"] = f"{self.xpath}"
 
@@ -365,7 +363,8 @@ class ML:
                        }
             making_log_data["log"].append(logdata)
         testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
- 
+
+
 # 몽고DB 
 class MongoDbManager:
     def __init__(self):

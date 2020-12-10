@@ -6,12 +6,16 @@ import difflib
 import requests
 import hashlib
 import base64
-import whois # pip install python-whois
+import whois  # pip install python-whois
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import socket
 import json
 from collections import OrderedDict
+
+# 임하늘 phishing 라이브러리
+from queue import Queue
+from prediction import ML, Preprocessing
 
 
 # 자바 스크립트 - 전체 text 크롤링
@@ -32,8 +36,10 @@ class JSDiff(object):
                 textlist[i] = textlist[i].replace('//', '\n//') + '$$$$$$'
             text2 = text2 + textlist[i]
 
-        self.text1 = text1.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace('$$$$$$', '\n').strip()
-        self.text2 = text2.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace('$$$$$$', '\n').strip()
+        self.text1 = text1.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace(
+            '$$$$$$', '\n').strip()
+        self.text2 = text2.replace(" ", "").replace(';', ';\n').replace('{', '{\n').replace('}', '}\n').replace(
+            '$$$$$$', '\n').strip()
         self.fromlines = re.split("\n", self.text1)
         self.fromlines = [n + "\n" for n in self.fromlines]
         self.tolines = re.split("\n", self.text2)
@@ -94,7 +100,6 @@ class FileDiff(object):
             md5obj.update(content)
         fp.close()
         return md5obj.hexdigest()
-
 
     # 디렉토리에있는 모든 파일의 해시 값을 얻습니다.
     # [[파일 경로, 해시 값], [파일 경로, 해시 값]]을 포함한 콘텐츠 hash_list_content 반환
@@ -195,12 +200,9 @@ class FileDiff(object):
         return logger
 
 
-
-
-
 class HtmlDiff(object):
 
-    def __init__(self, text1, text2, name=None, timestamp=None, xpath=None, response = None):
+    def __init__(self, text1, text2, name=None, timestamp=None, xpath=None, response=None):
         self.text1 = text1.replace("\n", "").replace("<", "\n<").strip()
         self.text2 = text2.replace("\n", "").replace("<", "\n<").strip()
         self.fromlines = re.split("\n", self.text1)
@@ -236,8 +238,10 @@ class HtmlDiff(object):
         url_temp_bool = False
 
         for i in range(0, len(diffs_list)):
-            text_modify = diffs_list[i][1][1].replace("\x00^",'').replace("\x00+", '').replace("\x00-", '').replace("\x01", '').replace("\n", '')
-            text_origin= diffs_list[i][0][1].replace("\x00^",'').replace("\x00+", '').replace("\x00-", '').replace("\x01", '').replace("\n", '')
+            text_modify = diffs_list[i][1][1].replace("\x00^", '').replace("\x00+", '').replace("\x00-", '').replace(
+                "\x01", '').replace("\n", '')
+            text_origin = diffs_list[i][0][1].replace("\x00^", '').replace("\x00+", '').replace("\x00-", '').replace(
+                "\x01", '').replace("\n", '')
 
             if '<iframe' in text_origin and '<iframe' in text_modify:
                 ifram_temp_bool = True
@@ -262,20 +266,21 @@ class HtmlDiff(object):
                         modify_iframe_link = temp_list1[0].strip(">").strip('"').strip("'")
                         temp0 = original_iframe_link.replace('http://', '').replace('https://', '')
                         temp1 = modify_iframe_link.replace('http://', '').replace('https://', '')
-                        if temp0[0]=='/' or temp0[0]=='#':
+                        if temp0[0] == '/' or temp0[0] == '#':
                             original_domain = self.filename
                         else:
                             temp_list0 = temp0.split('/')
                             original_domain = temp_list0[0].replace('www.', '')
-                        if temp1[0]=='/' or temp1[0]=='#':
+                        if temp1[0] == '/' or temp1[0] == '#':
                             modify_domain = self.filename
                         else:
                             temp_list1 = temp1.split('/')
                             modify_domain = temp_list1[0].replace('www.', '')
 
-                        temp_url = self.filename.replace('http://','').replace('https://','').split('/')[0]
+                        temp_url = self.filename.replace('http://', '').replace('https://', '').split('/')[0]
 
-                        if original_domain == modify_domain or temp_url.split('.')[-2]+"."+temp_url.split('.')[-1] in modify_domain:
+                        if original_domain == modify_domain or temp_url.split('.')[-2] + "." + temp_url.split('.')[
+                            -1] in modify_domain:
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
                         else:
                             diffs_list[i] = (text_origin, text_modify, 'Iframe 도메인변조')
@@ -301,22 +306,40 @@ class HtmlDiff(object):
                         modify_url_link = temp_list1[0].strip(">").strip('"').strip("'")
 
                         temp_url = self.filename.replace('http://', '').replace('https://', '').split('/')[0]
-                        internal_domain = temp_url.split('.')[-2]+"."+temp_url.split('.')[-1]
+                        internal_domain = temp_url.split('.')[-2] + "." + temp_url.split('.')[-1]
 
                         # 내부링크 -> 내부링크 변조
-                        if (original_url_link[0]=='/'or original_url_link[0]=='#') and (modify_url_link[0]=='/'or modify_url_link[0]=='#'):
+                        if (original_url_link[0] == '/' or original_url_link[0] == '#') and (
+                                modify_url_link[0] == '/' or modify_url_link[0] == '#'):
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
                         elif internal_domain in original_url_link and internal_domain in modify_url_link:
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
 
                         # 내부링크 -> 외부링크
-                        elif internal_domain in original_url_link or original_url_link[0]=='/'or original_url_link[0]=='#':
+                        elif internal_domain in original_url_link or original_url_link[0] == '/' or original_url_link[
+                            0] == '#':
                             mal_url = Mal_URL()
                             result = mal_url.main(modify_url_link)
 
                             #### self.response 하늘이 오빠 큐에 넣어주세요
+                            """"
+                            임하늘 추가사항 
+                            self.filename = name
+                            self.timestamp = timestamp
+                            self.xpath = xpath
+                            self.response = response
+                            """
+                            phishing_q = Queue()
+                            phishing_q.put(modify_url_link)
+                            phishing_data = phishing_q.get()
+                            if phishing_data is None:
+                                print("Empty data")
+                            else:
+                                phishing_search = Preprocessing(phishing_data).MakingData()
+                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
+                                             xpath=self.xpath, response=self.response).PredictionData()
 
-                            diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
+                            diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:' + result)
 
                         # 외부링크 -> 외부링크
                         else:
@@ -324,6 +347,22 @@ class HtmlDiff(object):
                             result = mal_url.main(modify_url_link)
 
                             #### self.response 하늘이 오빠 큐에 넣어주세요
+                            """"
+                            임하늘 추가사항 
+                            self.filename = name
+                            self.timestamp = timestamp
+                            self.xpath = xpath
+                            self.response = response
+                            """
+                            phishing_q = Queue()
+                            phishing_q.put(modify_url_link)
+                            phishing_data = phishing_q.get()
+                            if phishing_data is None:
+                                print("Empty data")
+                            else:
+                                phishing_search = Preprocessing(phishing_data).MakingData()
+                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
+                                             xpath=self.xpath, response=self.response).PredictionData()
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
@@ -338,7 +377,6 @@ class HtmlDiff(object):
                 ifram_temp_bool = False
 
         return diffs_list
-
 
     def format(self):
         self.diffs = self.get_Diff(self.text1, self.text2)
@@ -371,16 +409,14 @@ class HtmlDiff(object):
             elif '외부링크타입:' in str(diff[2]):
                 rawraw_data = OrderedDict()
                 rawraw_data['submodule'] = 2
-                rawraw_data['malURL_Type'] =  diff[2].split(":")[1]
+                rawraw_data['malURL_Type'] = diff[2].split(":")[1]
                 rawraw_data['malURL_Detection'] = diff[1]
                 raw_data.append(rawraw_data)
 
         return raw_data
 
 
-
 class JqueryDiff(object):
-
 
     def __init__(self):
         self.jquery_DB_path = 'jquery_DB.csv'
@@ -534,16 +570,13 @@ class Mal_URL(object):
                 return 'Normal'
 
 
-
 def diff_html(semiCrawling_path, page_url, time, xpath, responseCode):
-
     # 파라미터
     # test1 = (원본값)
     # test2 = 세미크롤링에서 가져온 값 (변조값)
     # page_url
     # timestamp
     # xpath
-
 
     f = open('1.html', "r", encoding="utf8")
     text1 = f.read()
@@ -572,18 +605,18 @@ def diff_html(semiCrawling_path, page_url, time, xpath, responseCode):
         return True
     else:
         f = open(LOG_PATH, "w", encoding="utf8")
-        htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath= xpath, response = responseCode)
-        log_data['logdata']=htmlDiff.format()
+        htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath=xpath, response=responseCode)
+        log_data['logdata'] = htmlDiff.format()
         log_data['Detection'] = True
         dict_info.append(log_data)
         f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
         return False
 
+
 # submodule=1 : HTML 소스코드 위변조탐지
 # submodule=2 : URL 안전성검사
 # submodule=3 : 위험 Jquery 사용탐지
 # submodule=4 : Iframe 도메인 변경탐지
-
 
 
 diff_html('3.html', 'http://3.131.17.188/wordpress', '2020-11-17 23:20:17.812169', 'xpath', '200')
