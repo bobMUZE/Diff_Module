@@ -332,7 +332,8 @@ class ML:
 
     def PredictionData(self):
         ex_web = [site for site in self.csv_data["url"]]
-        
+        url_state = requests.get(self.url_file).status_code # 2020-12-10 추가
+        req_time = requests.get(self.url_file).elapsed # 2020-12-10 추가
         
         predict_list = []
         for value in self.Predict_Proba():
@@ -342,13 +343,11 @@ class ML:
                 predict_list.append("{}%".format(int(value[1] * 100)))
 
         making_log_data = OrderedDict()
-        log_path = "log.json"
-        f = open(log_path, "r", encoding="utf-8")
-        dict_info = json.loads(f.read())
         making_log_data["Timestamp"] = f"{self.time}"
         making_log_data["detection"] = True
         making_log_data["URL"] = f"{self.url_file}"
-        making_log_data["response"] = f"{requests.get(self.url_file).status_code}"
+        making_log_data["response"] = f"{str(url_state)}", # 2020-12-10 추가 
+        making_log_data["request_time"] = f"{str(req_time)}", # 2020-12-10 추가
         making_log_data["xpath"] = f"{self.xpath}"
 
         making_log_data["module"] = "ML_PhishingDetected"
@@ -362,12 +361,11 @@ class ML:
                        "percentage": f"{predict_list[i]}"
                        }
             making_log_data["log"].append(logdata)
-
-            print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))
-
-            f.close()
-            f = open(log_path, "w", encoding="utf8")
-            dict_info.append(making_log_data)
-            f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
-
+        testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
+ 
+# 몽고DB 
+class MongoDbManager:
+    def __init__(self):
+        self._instance = None
+        self.client = pymongo.MongoClient("mongodb://muze_root:this-is-root-passwd@3.13.31.198:27017/")
 
