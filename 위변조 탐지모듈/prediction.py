@@ -352,7 +352,7 @@ class ML:
         making_log_data["xpath"] = f"{self.xpath}" # 연동완료
 
         making_log_data["module"] = "ML_PhishingDetected"
-        making_log_data["log"] = []
+        making_log_data["logdata"] = []
 
         for i in range(0, len(ex_web)):
             # 실제 하나 당 로그는 이 아래에서
@@ -361,7 +361,7 @@ class ML:
                        "result": f'{self.DecisionPrediction()[i]}',
                        "percentage": f"{predict_list[i]}"
                        }
-            making_log_data["log"].append(logdata)
+            making_log_data["logdata"].append(logdata)
         testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
 
 
