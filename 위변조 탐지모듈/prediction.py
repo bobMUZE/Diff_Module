@@ -331,6 +331,9 @@ class ML:
         return binary_prediction
 
     def PredictionData(self):
+        dbManager = MongoDbManager()
+        testcol = dbManager.client['muzeDB']['logCollection']
+
         ex_web = [site for site in self.csv_data["url"]]
         url_state = requests.get(self.url_file).status_code # 2020-12-10 추가
         req_time = requests.get(self.url_file).elapsed # 2020-12-10 추가
