@@ -346,8 +346,8 @@ class ML:
         making_log_data["Timestamp"] = f"{self.time}"
         making_log_data["detection"] = True
         making_log_data["URL"] = f"{self.url_file}"
-        making_log_data["response"] = f"{str(url_state)}" # 2020-12-10 추가 
-        making_log_data["request_time"] = f"{str(req_time)}" # 2020-12-10 추가
+        making_log_data["status_code"] = f"{str(url_state)}" # 2020-12-10 추가 
+        making_log_data["response_time"] = f"{str(req_time)}" # 2020-12-10 추가
         making_log_data["xpath"] = f"{self.xpath}"
 
         making_log_data["module"] = "ML_PhishingDetected"
