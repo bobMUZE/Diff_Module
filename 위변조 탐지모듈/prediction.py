@@ -364,7 +364,7 @@ class ML:
                        }
             making_log_data["logdata"].append(logdata)
         import json
-        print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))
+        print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))  # 2020년 12월 12일 추가 로그출력 
         testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
 
 
