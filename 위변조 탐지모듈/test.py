@@ -13,9 +13,6 @@ import socket
 import json
 from collections import OrderedDict
 
-# phishing
-from queue import Queue
-from prediction import ML, Preprocessing
 
 # 자바 스크립트 - 전체 text 크롤링
 class JSDiff(object):
@@ -260,10 +257,12 @@ class HtmlDiff(object):
                     temp_list0 = text_origin.replace('src =', 'src=').split('src=')
                     temp_list1 = text_modify.replace('src =', 'src=').split('src=')
                     if len(temp_list0) > 1 and len(temp_list1) > 1:
-                        temp_list0 = temp_list0[1].strip().split(' ')
-                        original_iframe_link = temp_list0[0].strip(">").strip('"').strip("'")
-                        temp_list1 = temp_list1[1].strip().split(' ')
-                        modify_iframe_link = temp_list1[0].strip(">").strip('"').strip("'")
+                        temp_list0 = temp_list0[1].split('>')
+                        temp_list0 = temp_list0[0].strip().split(' ')
+                        original_iframe_link = temp_list0[0].strip('"').strip("'")
+                        temp_list1 = temp_list1[1].split('>')
+                        temp_list1 = temp_list1[0].strip().split(' ')
+                        modify_iframe_link = temp_list1[0].strip('"').strip("'")
                         temp0 = original_iframe_link.replace('http://', '').replace('https://', '')
                         temp1 = modify_iframe_link.replace('http://', '').replace('https://', '')
                         if temp0[0]=='/' or temp0[0]=='#':
@@ -299,10 +298,12 @@ class HtmlDiff(object):
                     temp_list1 = text_modify.replace('href =', 'href=').split('href=')
 
                     try:
-                        temp_list0 = temp_list0[1].strip().split(' ')
-                        original_url_link = temp_list0[0].strip(">").strip('"').strip("'")
-                        temp_list1 = temp_list1[1].strip().split(' ')
-                        modify_url_link = temp_list1[0].strip(">").strip('"').strip("'")
+                        temp_list0 = temp_list0[1].split('>')
+                        temp_list0 = temp_list0[0].strip().split(' ')
+                        original_url_link = temp_list0[0].strip('"').strip("'")
+                        temp_list1 = temp_list1[1].split('>')
+                        temp_list1 = temp_list1[0].strip().split(' ')
+                        modify_url_link = temp_list1[0].strip('"').strip("'")
 
                         temp_url = self.filename.replace('http://', '').replace('https://', '').split('/')[0]
                         internal_domain = temp_url.split('.')[-2]+"."+temp_url.split('.')[-1]
@@ -326,16 +327,6 @@ class HtmlDiff(object):
                             # modify_url_link
 
                             # 큐에 넣어주시면 됩니다.
-                            phishing_q = Queue()
-                            phishing_q.put(modify_url_link)
-                            phishing_data = phishing_q.get()
-                            if phishing_data is None:
-                                print("Empty data")
-                            else:
-                                phishing_search = Preprocessing(phishing_data).MakingData()
-                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
-                                             xpath=self.xpath, response_status=self.responseCode,
-                                             request_time=self.requestTime).PredictionData()
 
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
@@ -353,16 +344,6 @@ class HtmlDiff(object):
                             # modify_url_link
 
                             # 큐에 넣어주시면 됩니다.
-                            phishing_q = Queue()
-                            phishing_q.put(modify_url_link)
-                            phishing_data = phishing_q.get()
-                            if phishing_data is None:
-                                print("Empty data")
-                            else:
-                                phishing_search = Preprocessing(phishing_data).MakingData()
-                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
-                                             xpath=self.xpath, response_status=self.responseCode,
-                                             request_time=self.requestTime).PredictionData()
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
