@@ -13,6 +13,9 @@ import socket
 import json
 from collections import OrderedDict
 
+# phishing
+from queue import Queue
+from prediction import ML, Preprocessing
 
 # 자바 스크립트 - 전체 text 크롤링
 class JSDiff(object):
@@ -327,7 +330,16 @@ class HtmlDiff(object):
                             # modify_url_link
 
                             # 큐에 넣어주시면 됩니다.
-
+                            phishing_q = Queue()
+                            phishing_q.put(modify_url_link)
+                            phishing_data = phishing_q.get()
+                            if phishing_data is None:
+                                print("Empty data")
+                            else:
+                                phishing_search = Preprocessing(phishing_data).MakingData()
+                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
+                                             xpath=self.xpath, response_status=self.responseCode,
+                                             request_time=self.requestTime).PredictionData()
 
                             diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], '외부링크타입:'+result)
 
@@ -344,6 +356,16 @@ class HtmlDiff(object):
                             # modify_url_link
 
                             # 큐에 넣어주시면 됩니다.
+                            phishing_q = Queue()
+                            phishing_q.put(modify_url_link)
+                            phishing_data = phishing_q.get()
+                            if phishing_data is None:
+                                print("Empty data")
+                            else:
+                                phishing_search = Preprocessing(phishing_data).MakingData()
+                                Machine = ML(phishing_search, time=self.timestamp, url_file=self.filename,
+                                             xpath=self.xpath, response_status=self.responseCode,
+                                             request_time=self.requestTime).PredictionData()
 
                             if result == '정상':
                                 diffs_list[i] = (diffs_list[i][0], diffs_list[i][1], False)
