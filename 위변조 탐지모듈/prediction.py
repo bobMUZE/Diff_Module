@@ -177,6 +177,8 @@ class Preprocessing:
             return -1
         except requests.exceptions.InvalidSchema:
             return -1
+        except: # 2020년 12월 13일 오류 인코딩 수정 우분투 20.04 -> 18.04 
+            return -1
 
         rank = int(rank)
         return 1 if rank < 100000 else 0
