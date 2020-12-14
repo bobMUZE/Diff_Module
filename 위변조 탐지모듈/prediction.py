@@ -1,8 +1,8 @@
 import math
 import whois
+import pymongo
 import requests
 import ipaddress
-import pymongo
 import pandas as pd
 import urllib.request
 import re, joblib
@@ -177,8 +177,6 @@ class Preprocessing:
             return -1
         except requests.exceptions.InvalidSchema:
             return -1
-        except: # 2020년 12월 13일 오류 인코딩 수정 우분투 20.04 -> 18.04 
-            return -1
 
         rank = int(rank)
         return 1 if rank < 100000 else 0
@@ -307,8 +305,10 @@ class Preprocessing:
             "DomainRegistrationLength": [self.DomainRegistrationLength()], "HavingIp": [self.HavingIp()],
             "sfh": [self.sfh()], "short_url_service": [self.shortening_service()], "favicon": [self.Favicon()]}
         data = pd.DataFrame(data_)
+        print(data)
 
         return data
+
 
 class ML:
     def __init__(self, csv_path, time, url_file, xpath, response_status, request_time):
@@ -325,12 +325,12 @@ class ML:
                                 "HavingIp", "sfh", "short_url_service", "favicon"]]
 
     def Predict_Proba(self):
-        prediction = joblib.load("forest_model_request.pkl")
+        prediction = joblib.load("decision_model_request.pkl")
         model_finally = prediction.predict_proba(self.x)
         return model_finally
 
     def DecisionPrediction(self):
-        prediction = joblib.load("forest_model_request.pkl")
+        prediction = joblib.load("decision_model_request.pkl")
         binary_prediction = prediction.predict(self.x)
         return binary_prediction
 
@@ -347,12 +347,16 @@ class ML:
                 predict_list.append("{}%".format(int(value[1] * 100)))
 
         making_log_data = OrderedDict()
+        log_path = r"C:\Users\syk12\PycharmProjects\Crawling\log.json"
+        import json
+        f = open(log_path, "r", encoding="utf-8")
+        dict_info = json.loads(f.read())
         making_log_data["time"] = self.time
         making_log_data["detection"] = True
-        making_log_data["url"] = f"{self.url_file}" # 연동완료
-        making_log_data["status_code"] = self.response_status # 연동완료
-        making_log_data["request_time"] = self.request_time # 연동완료
-        making_log_data["xpath"] = f"{self.xpath}" # 연동완료
+        making_log_data["url"] = f"{self.url_file}"  # 연동완료
+        making_log_data["status_code"] = self.response_status  # 연동완료
+        making_log_data["response_time"] = self.request_time  # 2020- 12- 10 추가 수진이한테 추가적으로 받아와야할것
+        making_log_data["xpath"] = f"{self.xpath}"  # 연동완료
 
         making_log_data["module"] = "ML_PhishingDetected"
         making_log_data["logdata"] = []
@@ -365,9 +369,13 @@ class ML:
                        "percentage": f"{predict_list[i]}"
                        }
             making_log_data["logdata"].append(logdata)
-        import json
-        print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))  # 2020년 12월 12일 추가 로그출력 
-        testcol.insert_one(making_log_data) # 몽고 DB 추가 데이터 넣는곳
+            print(json.dumps(making_log_data, ensure_ascii=False, indent="\t"))
+
+            f.close()
+            f = open(log_path, "w", encoding="utf8")
+            dict_info.append(making_log_data)
+            f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
+        testcol.insert_one(making_log_data)  # 몽고 DB 추가 데이터 넣는곳
 
 
 # 몽고DB 
@@ -375,4 +383,6 @@ class MongoDbManager:
     def __init__(self):
         self._instance = None
         self.client = pymongo.MongoClient("mongodb://muze_root:this-is-root-passwd@3.13.31.198:27017/")
+
+
 
