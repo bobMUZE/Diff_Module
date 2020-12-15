@@ -177,6 +177,8 @@ class Preprocessing:
             return -1
         except requests.exceptions.InvalidSchema:
             return -1
+        except:
+            return -1
 
         rank = int(rank)
         return 1 if rank < 100000 else 0
