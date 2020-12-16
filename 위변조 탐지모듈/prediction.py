@@ -360,7 +360,7 @@ class ML:
         making_log_data["request_time"] = self.request_time  # 연동완료
         making_log_data["xpath"] = f"{self.xpath}"  # 연동완료
         making_log_data["module"] = "ML_PhishingDetected"
-        making_log_data["progress"] # int, default -1으로 고정
+        making_log_data["progress"] = -1 # int, default -1으로 고정
         
         making_log_data["logdata"] = []
         for i in range(0, len(ex_web)):
