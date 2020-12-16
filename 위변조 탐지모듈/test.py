@@ -12,10 +12,12 @@ from urllib.parse import urlparse
 import socket
 import json
 from collections import OrderedDict
+import pymongo
 
 # phishing
 from queue import Queue
 from prediction import ML, Preprocessing
+
 
 # 자바 스크립트 - 전체 text 크롤링
 class JSDiff(object):
@@ -577,6 +579,12 @@ class Mal_URL(object):
 
 
 
+class MongoDbManager:
+    def __init__(self):
+        self._instance = None
+        self.client = pymongo.MongoClient("mongodb://muze_root:this-is-root-passwd@3.13.31.198:27017/")
+
+
 def diff_html(semiCrawling_path, page_url, time, xpath, responseCode, requestTime):
 
     # 파라미터
@@ -586,7 +594,6 @@ def diff_html(semiCrawling_path, page_url, time, xpath, responseCode, requestTim
     # timestamp
     # xpath
 
-
     f = open('1.html', "r", encoding="utf8")
     text1 = f.read()
     f.close()
@@ -594,9 +601,6 @@ def diff_html(semiCrawling_path, page_url, time, xpath, responseCode, requestTim
     text2 = f.read()
     f.close()
 
-    LOG_PATH = 'logger.json'  # 로그 알람 파일 저장 위치
-    f = open(LOG_PATH, "r", encoding="utf8")
-    dict_info = json.loads(f.read())
     log_data = OrderedDict()
     log_data['time'] = time
     log_data['detection'] = False
@@ -604,22 +608,21 @@ def diff_html(semiCrawling_path, page_url, time, xpath, responseCode, requestTim
     log_data['status_code'] = responseCode
     log_data['request_time'] = requestTime
     log_data['xpath'] = xpath
+    log_data['progress'] = -1
     log_data['module'] = 'HTML'
 
-    f.close()
+    dbManager = MongoDbManager()
+    testcol = dbManager.client['muzeDB']['logCollection']
+
 
     if text1.replace("\n", "").replace(" ", "") == text2.replace("\n", "").replace(" ", ""):
-        f = open(LOG_PATH, "w", encoding="utf8")
-        dict_info.append(log_data)
-        f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
+        testcol.insert_one(log_data)
         return True
     else:
-        f = open(LOG_PATH, "w", encoding="utf8")
         htmlDiff = HtmlDiff(text1, text2, name=page_url, timestamp=time, xpath= xpath, responseCode = responseCode, requestTime=requestTime)
         log_data['logdata']=htmlDiff.format()
         log_data['detection'] = True
-        dict_info.append(log_data)
-        f.write(json.dumps(dict_info, ensure_ascii=False, indent='\t'))
+        testcol.insert_one(log_data)
         return False
 
 # submodule=1 : HTML 소스코드 위변조탐지
@@ -629,4 +632,4 @@ def diff_html(semiCrawling_path, page_url, time, xpath, responseCode, requestTim
 
 
 
-diff_html('3.html', 'http://3.131.17.188/wordpress', 1607582834.3266618, 'xpath', 200, 0.624045)
+diff_html('3.html', 'http://3.131.17.188/wordpress:8080', 1608125301.3266618, "//*[@id=\"NM_NEWSSTAND_HEADER\"]", 200, 0.624045)
