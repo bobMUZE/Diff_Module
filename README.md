@@ -1,4 +1,4 @@
-# Diff_Module (위변조 탐지 모듈)
+# Diff_Module (웹 위변조 탐지 모듈)
 
 
 - 파일 위변조 검사 : Hash 값 변조  판단
